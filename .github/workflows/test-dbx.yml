@@ -1,0 +1,43 @@
+name: Test Databricks Job
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Test Authentication
+        run: |
+          databricks current-user me
+
+      - name: Run Generator Job
+        run: |
+          databricks jobs run-now --job-id 941915648602823
+
+      - name: List Volume
+        run: |
+          databricks fs ls /Volumes/demo_catalog/demo_schema/demo_volume/generated
+      - name: Download artifacts
+        run: |
+          mkdir generated
+        
+          databricks fs cp \
+            /Volumes/demo_catalog/demo_schema/demo_volume/generated \
+            generated \
+            --recursive
+        
+          ls -R generated
